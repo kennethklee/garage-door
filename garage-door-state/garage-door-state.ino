@@ -12,9 +12,10 @@
 #define LED_OFF HIGH
 
 // https://home.konquest.com/state
-const PROGMEM char* WIFI[] = { "lee++", "letmein!" };
-const PROGMEM char* NOTIFY_HOST = "downloads.konquest.com";
-const PROGMEM char* NOTIFY_URI = "/state";
+//const PROGMEM char* WIFI[] = { "lee++", "letmein!" };
+const PROGMEM char* WIFI[] = { "pan", "letmein!" };
+const PROGMEM char* NOTIFY_HOST = "home.konquest.com";
+const PROGMEM char* NOTIFY_URI = "/door/garage";
 //const PROGMEM int NOTIFY_PORT = 443;
 const PROGMEM int NOTIFY_PORT = 80;
 
@@ -37,6 +38,8 @@ void log(String message) {
 }
 
 bool notifyState(bool isOpen) {
+  isError = false;
+  
 //  WiFiClientSecure request;
   WiFiClient request;
   if (!request.connect(NOTIFY_HOST, NOTIFY_PORT)) {
@@ -81,6 +84,18 @@ void connectToWifi() {
 
     if ((millis() - now) > 300000) {  // 5 minutes
       log("Could not connect. Restarting...");
+
+      digitalWrite(BUILTIN_LED, LED_ON);
+      delay(250);
+      digitalWrite(BUILTIN_LED, LED_OFF);
+      delay(250);
+      digitalWrite(BUILTIN_LED, LED_ON);
+      delay(250);
+      digitalWrite(BUILTIN_LED, LED_OFF);
+      delay(250);
+      digitalWrite(BUILTIN_LED, LED_ON);
+      delay(250);
+      digitalWrite(BUILTIN_LED, LED_OFF);      
       ESP.restart();  // Try again every 5 mins
     }
   }
@@ -114,10 +129,9 @@ void setup() {
   } else {
     pinMode(BUILTIN_LED, OUTPUT);
   }
+  pinMode(DOOR_INPUT, INPUT_PULLUP);
   
   connectToWifi();
-
-  pinMode(DOOR_INPUT, INPUT_PULLUP);
 }
 
 void loop() {
