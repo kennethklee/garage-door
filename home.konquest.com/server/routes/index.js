@@ -1,5 +1,7 @@
-var doors = require('./doors')
+var api = require('./api')
 
 module.exports = function (app) {
-  app.use('/doors', doors)
+  app.use('/api', api)
+
+  // TODO frontend stuffage
 }

@@ -1,3 +1,3 @@
 describe('Server', function () {
-  require('./controllers')
+  require('./routes')
 })

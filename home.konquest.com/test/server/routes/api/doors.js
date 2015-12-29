@@ -31,10 +31,10 @@ describe('Doors', function() {
       })
   })
 
-  describe('GET /doors', function () {
+  describe('GET /api/doors', function () {
     it('should list', function (done) {
       request(server)
-        .get('/doors')
+        .get('/api/doors')
         .expect(200)
         .end(function (err, res) {
           assert.ifError(err)
@@ -50,13 +50,13 @@ describe('Doors', function() {
     })
   })
 
-  describe('POST /doors', function () {
+  describe('POST /api/doors', function () {
     // TODO test to fail creation
     it('should create', function (done) {
       var newDoor = fake.door()
 
       request(server)
-        .post('/doors')
+        .post('/api/doors')
         .send(newDoor)
         .expect(201)
         .end(function (err, res) {
@@ -71,10 +71,10 @@ describe('Doors', function() {
     })
   })
 
-  describe('GET /doors/:door', function () {
+  describe('GET /api/doors/:door', function () {
     it('should show by id', function (done) {
       request(server)
-        .get('/doors/' + doors[0].id)
+        .get('/api/doors/' + doors[0].id)
         .expect(200)
         .end(function (err, res) {
           assert.ifError(err)
@@ -89,7 +89,7 @@ describe('Doors', function() {
 
     it('should show by slug', function (done) {
       request(server)
-        .get('/doors/' + doors[0].slug)
+        .get('/api/doors/' + doors[0].slug)
         .expect(200)
         .end(function (err, res) {
           assert.ifError(err)
@@ -104,13 +104,13 @@ describe('Doors', function() {
     })
   })
 
-  describe('PUT /doors/:door', function () {
+  describe('PUT /api/doors/:door', function () {
     // TODO test to fail update
     it('should update', function (done) {
       var changedIsOpen = !doors[0].isOpen
 
       request(server)
-        .put('/doors/' + doors[0].id)
+        .put('/api/doors/' + doors[0].id)
         .send({ isOpen: changedIsOpen })
         .expect(200)
         .end(function (err, res) {
@@ -128,10 +128,10 @@ describe('Doors', function() {
     })
   })
 
-  describe('DELETE /doors/:door', function () {
+  describe('DELETE /api/doors/:door', function () {
     it('should destroy', function (done) {
       request(server)
-        .delete('/doors/' + doors[0].id)
+        .delete('/api/doors/' + doors[0].id)
         .expect(200)
         .end(function (err, res) {
           assert.ifError(err)
