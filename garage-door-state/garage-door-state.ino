@@ -12,12 +12,12 @@
 #define LED_OFF HIGH
 
 // https://home.konquest.com/state
-//const PROGMEM char* WIFI[] = { "lee++", "letmein!" };
-const PROGMEM char* WIFI[] = { "pan", "letmein!" };
+const PROGMEM char* WIFI[] = { "lee++", "letmein!" };
+//const PROGMEM char* WIFI[] = { "pan", "letmein!" };
 const PROGMEM char* NOTIFY_HOST = "home.konquest.com";
-const PROGMEM char* NOTIFY_URI = "/door/garage";
-//const PROGMEM int NOTIFY_PORT = 443;
-const PROGMEM int NOTIFY_PORT = 80;
+const PROGMEM char* NOTIFY_URI = "/api/doors/garage";
+const PROGMEM bool NOTIFY_SECURE = false;
+const PROGMEM char* NOTIFY_SECURE_SHA1 = "3A A9 66 D5 E7 80 94 E4 AF CD 0A 7D E7 E4 B6 27 A5 AA D4 22";
 
 const PROGMEM int RESTART_INTERVAL = 1000 * 60 * 60; // 1 hour
 const PROGMEM int POLL_INTERVAL = 1000 * 1; // 1 second
@@ -37,39 +37,56 @@ void log(String message) {
   }
 }
 
+WiFiClient* connectToServer() {
+  if (NOTIFY_SECURE) {
+    WiFiClientSecure* request = new WiFiClientSecure();
+    if (!request->connect(NOTIFY_HOST, 443)) {
+      log(String("Failed to connect to ") + NOTIFY_HOST + ":443");
+      return NULL;
+    }
+
+    if (!request->verify(NOTIFY_SECURE_SHA1, NOTIFY_HOST)) {
+      log("SSL verification failed");
+      return NULL;
+    }
+
+    return (WiFiClient*)request;
+  } else {
+    WiFiClient* request = new WiFiClient();
+    if (!request->connect(NOTIFY_HOST, 80)) {
+      log(String("Failed to connect to ") + NOTIFY_HOST + ":80");
+      return NULL;
+    }
+    return request;
+  }
+}
+
 bool notifyState(bool isOpen) {
   isError = false;
   
-//  WiFiClientSecure request;
-  WiFiClient request;
-  if (!request.connect(NOTIFY_HOST, NOTIFY_PORT)) {
-    log(String("Failed to connect to ") + NOTIFY_HOST);
+  WiFiClient* request = connectToServer();
+  if (!request) {
     isError = true;
     return false;
   }
   
-//  if (!request.verify("3A A9 66 D5 E7 80 94 E4 AF CD 0A 7D E7 E4 B6 27 A5 AA D4 22", NOTIFY_HOST)) {
-//    log("SSL verification failed");
-//    isError = true;
-//    return false;
-//  }
+  String postData = String(isOpen ? "isOpen=1" : "isOpen=0");
 
-  // {"garage":{"door":"open/close"}}
-  String postData = String("{\"garage\":{\"door\":\"") + (isOpen ? "open" : "close") + "\"}}";
-  request.print(String("POST ") + NOTIFY_URI + " HTTP/1.1\r\n" +
+  // Send request
+  request->print(String("PUT ") + NOTIFY_URI + " HTTP/1.1\r\n" +
     "Host: " + NOTIFY_HOST + "\r\n" +
     "User-Agent: ESP8266\r\n" +
     "Connection: close\r\n" +
-    "Content-Type: application/json\r\n" +
+    "Access-Key: qwerty\r\n" +
+    "Content-Type: application/x-www-form-urlencoded\r\n" +
     "Content-Length: " + postData.length() + "\r\n\r\n" +
     postData);
 
-//  while (request.available()) {
-//    String responseLine = request.readStringUntil('\r');
-//    log(responseLine);
-//  }
-//  String response = request.readString();
-//  log(response);
+  if (DEBUG) {
+    String response = request->readString();
+    log(response);
+  }
+  
   log(String("notified home: garage door ") + (isOpen ? "opened" : "closed"));
   return true;
 }
@@ -124,8 +141,7 @@ bool checkDoor() {
 void setup() {
   if (DEBUG) {
     Serial.begin(115200);
-    Serial.println();
-    Serial.println();
+    Serial.print("\r\n\r\n");
   } else {
     pinMode(BUILTIN_LED, OUTPUT);
   }
