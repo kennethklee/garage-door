@@ -1,7 +1,8 @@
 #include <ESP8266WiFi.h>      // https://github.com/esp8266/Arduino
 //#include <WiFiClientSecure.h> // https://github.com/esp8266/Arduino
 
-#define DEBUG false
+//#define DEBUG false
+#define DEBUG true
 
 #define DOOR_OPEN HIGH
 #define DOOR_CLOSE LOW
@@ -42,11 +43,13 @@ WiFiClient* connectToServer() {
     WiFiClientSecure* request = new WiFiClientSecure();
     if (!request->connect(NOTIFY_HOST, 443)) {
       log(String("Failed to connect to ") + NOTIFY_HOST + ":443");
+      delete request;
       return NULL;
     }
 
     if (!request->verify(NOTIFY_SECURE_SHA1, NOTIFY_HOST)) {
       log("SSL verification failed");
+      delete request;
       return NULL;
     }
 
@@ -55,6 +58,7 @@ WiFiClient* connectToServer() {
     WiFiClient* request = new WiFiClient();
     if (!request->connect(NOTIFY_HOST, 80)) {
       log(String("Failed to connect to ") + NOTIFY_HOST + ":80");
+      delete request;
       return NULL;
     }
     return request;
@@ -67,6 +71,7 @@ bool notifyState(bool isOpen) {
   WiFiClient* request = connectToServer();
   if (!request) {
     isError = true;
+    delete request;
     return false;
   }
   
@@ -88,6 +93,7 @@ bool notifyState(bool isOpen) {
   }
   
   log(String("notified home: garage door ") + (isOpen ? "opened" : "closed"));
+  delete request;
   return true;
 }
 
